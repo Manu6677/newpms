@@ -1,123 +1,34 @@
 <template>
   <div class="bg-gray-50">
     <!-- THIS IS ADMIN DASHBOARD -->
-    <div class="" v-if="checkDashboardForUser === 'admin'">
+    <div class="relative z-10" v-if="checkDashboardForUser === 'admin'">
       <h1 class="font-medium text-3xl py-4 font-serif">Admin DashBoard</h1>
 
-      <!-- fetching data from firebase for admin -->
+      <!-- fetching data -->
       <div v-if="surveyData.length > 0">
-        <div class="space-y-8">
-          <div
-            v-for="item in surveyData"
-            :key="item.id"
-            class="w-96 mx-auto rounded-md bg-gray-100 shadow-lg"
-          >
-            <div class="pb-5 rounded-md p-2 flex justify-around">
-              <span class="flex text-xl">
-                <p class="px-2">Ques:</p>
-                <div>{{ item.ques }}</div>
-              </span>
-
-              <!-- del and edit icon in div -->
-              <div class="space-x-4 flex">
-                <font-awesome-icon
-                  icon="fa-solid fa-trash"
-                  class="cursor-pointer"
-                  @click="deletePollCard(item.id)"
-                />
-                <font-awesome-icon
-                  icon="fa-solid fa-pen-to-square"
-                  class="cursor-pointer"
-                  @click="()=>{isFormOpen = true}"
-                />
-              </div>
-            </div>
-
-            <div class="flex space-x-9 px-5 pb-4">
-              <p v-for="it in item.choices" :key="it.id">
-                {{ it.option }}
-                <input type="radio" disabled="true" />
-              </p>
-            </div>
-          </div>
+        <div v-for="item in surveyData" :key="item.id">
+          <AllCards :item="item" @is-form-open="isFormOpen = true" />
         </div>
-
-        <!-- logout and signup btn and add details add btn -->
-        <div class="space-x-3">
-          <button
-            class="bg-gray-300 p-2 my-6 rounded-md text-xl"
-            @click="logoutAdmin"
-          >
-            Logout
-          </button>
-          <router-link to="/signup">
-            <button class="bg-gray-300 p-2 my-6 rounded-md text-xl">
-              Signup
-            </button>
-          </router-link>
-
-          <!-- add details -->
-          <div class="">
-            <button
-              class="bg-gray-300 p-2 rounded-lg"
-              @click="addDetails"
-              :disabled="isAddDetailsBtnClicked"
-            >
-              Add Details
-            </button>
-          </div>
-        </div>
-        <!-- btn section end -->
       </div>
 
-      <!-- admin form to add Data -->
-      <!-- <div :class="isAddDetailsBtnClicked ? 'activate' : 'deactivate'">
-        <font-awesome-icon
-          icon="fa-solid fa-xmark"
-          @click="closeModalOfAdminFormToAddData"
-          class="text-white text-3xl ml-[460px] cursor-pointer"
-        />
+      <!-- logout and signup btn and add details add btn -->
+      <div class="space-x-3">
+        <button class="bg-gray-300 p-2 my-6 rounded-md text-xl">Logout</button>
+        <router-link to="/signup">
+          <button class="bg-gray-300 p-2 my-6 rounded-md text-xl">
+            Signup
+          </button>
+        </router-link>
 
-        <h2 class="py-3 text-2xl font-serif">Form to add Polls</h2>
-        <form v-on:submit.prevent="submitHandler">
-          <div> -->
-      <!-- title bar -->
-      <!-- <div class="py-4">
-              <label for="ques" class="px-2">Ques:</label>
-              <input
-                placeholder="type here"
-                v-model="question"
-                class="rounded-md px-2"
-              />
-            </div> -->
-
-      <!-- field -->
-      <!-- <div class="py-4" v-for="item in data" :key="item.id">
-              <label for="field" class="px-2">Choice:</label>
-              <input
-                placeholder="type here"
-                class="rounded-md px-2"
-                v-model="item.option"
-              />
-            </div>
-          </div>
-
-          <div class="bg-gray-100 w-40 mx-auto rounded-md">
-            <button type="submit">Submit Form</button>
-          </div>
-        </form>
-
-        <div class="bg-gray-100 w-40 mx-auto rounded-md mt-3">
-          <button @click="addDataToList">Add More Options</button>
-        </div> -->
-      <!-- </div>  -->
-
-      <Form v-if="isFormOpen"></Form>
-
-
+        <!-- add details -->
+        <div class="">
+          <button class="bg-gray-300 p-2 rounded-lg" @click="()=>{isFormOpen = true}">Add Details</button>
+        </div>
+      </div>
+      <!-- btn section end -->
 
       <!-- Modal to edit details by Admin -->
-      <div :class="isBtnClickedToEditByAdmin ? 'activate' : 'deactivate'">
+      <!-- <div :class="isBtnClickedToEditByAdmin ? 'activate' : 'deactivate'">
         <font-awesome-icon
           icon="fa-solid fa-xmark"
           @click="closeModalOfAdminToEditData"
@@ -150,13 +61,15 @@
         <div class="bg-gray-100 w-40 mx-auto rounded-md my-3">
           <button @click="addMoreFieldsInEdit">Add Choice</button>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- This is userDashboard -->
     <div class="mt-6" v-else>
       <h1 class="text-2xl">This is user dash board</h1>
     </div>
+
+    <Form @is-form-open="isFormOpen = false" v-if="isFormOpen" class="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 z-30"/>
   </div>
 </template>
 
@@ -182,6 +95,8 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Form from "../components/Form.vue";
 
+import AllCards from "../components/AllCards.vue";
+
 const router = useRouter();
 
 // init service
@@ -193,13 +108,13 @@ const colRef = collection(db, "polls");
 const colUser = collection(db, "users");
 const currerntLoggedInUserId = ref(null);
 
-const surveyData = ref([]);
 const checkDashboardForUser = ref(null);
 const isAddDetailsBtnClicked = ref(false);
 
 const singleDocID = ref(null);
 const singleDocToEdit = ref([]);
-const isFormOpen = ref(false)
+const isFormOpen = ref(false);
+const surveyData = ref([]);
 
 // logout Admin
 function logoutAdmin() {
@@ -239,6 +154,7 @@ function handleEditedForm() {
   updateDoc(docRef);
   isBtnClickedToEditByAdmin.value = false;
 }
+
 
 // edited form data to add more fields
 const editOption = ref([{}]);
@@ -295,8 +211,6 @@ function closeModalOfAdminFormToAddData() {
   isAddDetailsBtnClicked.value = false;
 }
 
-
-
 onSnapshot(colRef, (snapshot) => {
   surveyData.value = [];
   snapshot.docs.forEach((doc) => {
@@ -305,7 +219,6 @@ onSnapshot(colRef, (snapshot) => {
 
   console.log(surveyData.value, "from snapshot");
 });
-
 
 onMounted(() => {
   setTimeout(() => {

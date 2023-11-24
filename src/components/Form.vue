@@ -1,12 +1,11 @@
 <template>
   <div>
-    <h1>This is form component</h1>
     <!-- admin form to add Data -->
-    <div :class="isAddDetailsBtnClicked ? 'activate' : 'deactivate'">
+    <div class="bg-gray-300 w-96 rounded-md pb-10">
       <font-awesome-icon
         icon="fa-solid fa-xmark"
-        @click="closeModalOfAdminFormToAddData"
-        class="text-white text-3xl ml-[460px] cursor-pointer"
+        class="text-white text-2xl ml-80 cursor-pointer"
+        @click="emit('is-form-open')"
       />
 
       <h2 class="py-3 text-2xl font-serif">Form to add Polls</h2>
@@ -23,7 +22,7 @@
           </div>
 
           <!-- field -->
-          <div class="py-4" v-for="item in data" :key="item.id">
+          <div class="py-4" v-for="item in choices" :key="item.id">
             <label for="field" class="px-2">Choice:</label>
             <input
               placeholder="type here"
@@ -45,6 +44,31 @@
   </div>
 </template>
 
-<script>
-// import { ref } from "ref";
+<script setup>
+import { ref } from "vue";
+import store from "../store";
+
+const emit = defineEmits(["is-form-open"]);
+const question = ref("");
+const choices = ref([
+  {
+    id: 1,
+    option: "",
+  },
+  {
+    id: 2,
+    option: "",
+  },
+]);
+
+function addDataToList() {
+  choices.value.push({
+    id: choices.value.length + 1,
+    option: "",
+  });
+}
+
+function submitHandler() {
+  store.dispatch("addNewPolls", { question, choices });
+}
 </script>
