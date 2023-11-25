@@ -1,8 +1,15 @@
 <template>
   <div class="bg-gray-50">
     <!-- THIS IS ADMIN DASHBOARD -->
-    <div class="relative z-10" v-if="checkDashboardForUser === 'admin'">
-      <h1 class="font-medium text-3xl py-4 font-serif">Admin DashBoard</h1>
+
+
+    <div class="h-24 max-w-min=[1300px] flex px-5 justify-end space-x-2 font-serif">
+      <button class="bg-gray-300 p-2 my-6 rounded-md text-xl" @click="logoutUser">Logout</button>
+      <button class="bg-gray-300 p-2 my-6 rounded-md text-xl" @click="()=>{isFormOpen = true}">Add Details</button>
+    </div>
+     
+    <div class="relative z-10" v-if="userDataFromStore.role === 'admin'">
+      <h1 class="font-medium text-3xl font-serif">Admin DashBoard</h1>
 
       <!-- fetching data -->
       <div v-if="surveyData.length > 0">
@@ -11,23 +18,7 @@
         </div>
       </div>
 
-      <!-- logout and signup btn and add details add btn -->
-      <div class="space-x-3">
-        <button class="bg-gray-300 p-2 my-6 rounded-md text-xl">Logout</button>
-        <router-link to="/signup">
-          <button class="bg-gray-300 p-2 my-6 rounded-md text-xl">
-            Signup
-          </button>
-        </router-link>
-
-        <!-- add details -->
-        <div class="">
-          <button class="bg-gray-300 p-2 rounded-lg" @click="()=>{isFormOpen = true}">Add Details</button>
-        </div>
-      </div>
-      <!-- btn section end -->
-
-      <!-- Modal to edit details by Admin -->
+          <!-- Modal to edit details by Admin -->
       <!-- <div :class="isBtnClickedToEditByAdmin ? 'activate' : 'deactivate'">
         <font-awesome-icon
           icon="fa-solid fa-xmark"
@@ -94,10 +85,17 @@ import {
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Form from "../components/Form.vue";
+import { computed } from "vue";
+import { useStore } from "vuex";
 
 import AllCards from "../components/AllCards.vue";
 
 const router = useRouter();
+const storeData = useStore()
+const userDataFromStore = computed(() => storeData.state.userData);
+console.log(userDataFromStore.value.role)
+// console.log(userDataFromStore.length)
+
 
 // init service
 const db = getFirestore();
@@ -116,12 +114,16 @@ const singleDocToEdit = ref([]);
 const isFormOpen = ref(false);
 const surveyData = ref([]);
 
-// logout Admin
-function logoutAdmin() {
-  signOut(auth)
+
+
+// logout User
+function logoutUser() {
+    signOut(auth)
     .then(() => {
       console.log("logout");
+      store.dispatch("logoutUser")
       router.push({ name: "login" });
+
     })
     .catch((err) => {
       console.log(err.message);
@@ -221,21 +223,22 @@ onSnapshot(colRef, (snapshot) => {
 });
 
 onMounted(() => {
-  setTimeout(() => {
-    onAuthStateChanged(auth, (user) => {
-      console.log("current loggedin user", user);
-      currerntLoggedInUserId.value = user?.uid;
+  // setTimeout(() => {
+  //   onAuthStateChanged(auth, (user) => {
+  //     console.log("current loggedin user", user);
+  //     currerntLoggedInUserId.value = user?.uid;
 
-      if (currerntLoggedInUserId.value) {
-        const docRef = doc(db, "users", currerntLoggedInUserId.value);
-        getDoc(docRef).then((doc) => {
-          console.log(doc.data());
-          // console.log(doc.data().role)
-          checkDashboardForUser.value = doc.data().role;
-        });
-      }
-    });
-  }, 1000);
+  //     if (currerntLoggedInUserId.value) {
+  //       const docRef = doc(db, "users", currerntLoggedInUserId.value);
+  //       getDoc(docRef).then((doc) => {
+  //         console.log(doc.data());
+  //         store.dispatch("addUserData", doc.data())
+  //         // console.log(doc.data().role)
+  //         checkDashboardForUser.value = doc.data().role;
+  //       });
+  //     }
+  //   });
+  // }, 1000);
 });
 </script>
 

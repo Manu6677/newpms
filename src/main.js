@@ -3,6 +3,8 @@ import App from "./App.vue";
 import router from "./router";
 import "./style.css";
 import store from "./store";
+import { addUserData } from "./store/actions";
+import ToSaveDataInStore from "./plugins/ToSaveDataInStore";
 
 /* import the fontawesome core */
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -23,4 +25,5 @@ library.add(faTrash, faPenToSquare, faXmark);
 const app = createApp(App).component("font-awesome-icon", FontAwesomeIcon);
 app.use(router);
 app.use(store);
+app.use(ToSaveDataInStore);
 app.mount("#app");

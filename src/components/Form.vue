@@ -69,6 +69,7 @@ function addDataToList() {
 }
 
 function submitHandler() {
-  store.dispatch("addNewPolls", { question, choices });
+    store.dispatch("addNewPolls", { question, choices });
+    emit('is-form-open')
 }
 </script>

@@ -48,8 +48,42 @@
 
 <!-- <script setup> -->
 <script setup>
-import {ref} from "vue"
+import {
+  signOut,
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+} from "@firebase/auth";
+import { collection, getFirestore, onSnapshot, doc } from "firebase/firestore";
+import firebaseApp from "../firebaseConfig";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import store from "@/store";
+
+const router = useRouter();
+
+// init service
+const db = getFirestore();
+const auth = getAuth(firebaseApp);
+
+// collection ref
+const colRef = collection(db, "polls");
+const colUser = collection(db, "users");
 
 const email = ref(null);
 const password = ref(null);
+
+async function userLogin() {
+  console.log("router")
+  await store.dispatch("loginInUser", { email: email.value, password: password.value })
+  router.push({name: 'dashboard'})
+  }
+
+onMounted(() => {
+  setTimeout(() => {
+    onAuthStateChanged(auth, (user) => {
+      console.log(user)
+    })
+  }, 1000)
+})
 </script>

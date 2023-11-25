@@ -3,7 +3,9 @@ import HomeView from "../views/HomeView.vue";
 import Login from "../views/Login.vue";
 import SignUp from "../views/SignUp.vue";
 import DashBoard from "../views/DashBoard.vue";
-
+import { useStore } from "vuex";
+import store from "@/store";
+// const store = useStore();
 const routes = [
   {
     path: "/",
@@ -27,9 +29,29 @@ const routes = [
   },
 ];
 
+console.log;
+
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  setTimeout(() => {
+    console.log(store.state.userData.role);
+    if (to.path == "/dashboard" && !store.state.userData.role) {
+      next("/login");
+      console.log(to.path);
+    } else if (
+      store.state.userData.role &&
+      (to.path == "/login" || to.path == "/signup")
+    ) {
+      next("/dashboard");
+      console.log(to.path);
+    } else {
+      next();
+    }
+  }, 2000);
 });
 
 export default router;

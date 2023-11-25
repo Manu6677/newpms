@@ -85,6 +85,7 @@ import {
   getAuth,
   onAuthStateChanged,
 } from "firebase/auth";
+import store from "../store"
 
 const name = ref(null);
 const email = ref(null);
@@ -110,7 +111,7 @@ function userSignUp() {
   ) {
     return alert("Fill all fields");
   } else {
-    console.log(name.value, email.value, password.value, role.value);
+
     createUserWithEmailAndPassword(auth, email.value, password.value)
       .then((cred) => {
         console.log(cred);
@@ -123,7 +124,6 @@ function userSignUp() {
 
         setTimeout(() => {
           console.log(currerntLoggedInUserId.value);
-          
           setDoc(doc(colRef, currerntLoggedInUserId.value), {
             name: name.value,
             email: email.value,
@@ -138,15 +138,6 @@ function userSignUp() {
       .catch((err) => {
         console.log(err.message);
       });
-
-    // addDoc(colRef, {
-    //   name: name.value,
-    //   email: email.value,
-    //   password: password.value,
-    //   role: role.value,
-    // }).then(() => {
-    //     console.log("add signup data in user doc")
-    // })
   }
 }
 </script>
