@@ -3,12 +3,11 @@ import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
 } from "@firebase/auth";
 import {
   collection,
   getFirestore,
-  query,
-  where,
   addDoc,
   getDocs,
   getDoc,
@@ -19,6 +18,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import firebaseApp from "../firebaseConfig";
+import { ref } from "vue";
 
 // init service
 const db = getFirestore();
@@ -27,6 +27,8 @@ const auth = getAuth(firebaseApp);
 // collection ref
 const colRef = collection(db, "polls");
 const colUser = collection(db, "users");
+
+const currerntLoggedInUserId = ref(null);
 
 export function addNewPolls({ commit }, { question, choices }) {
   const questionData = question.value;
@@ -77,11 +79,46 @@ export function loginInUser({ commit, dispatch }, { email, password }) {
 }
 
 export function addUser({ commit }, data) {
+  const userId = data?.uid;
+  const docRef = doc(db, "users", userId);
+  getDoc(docRef).then((doc) => {
+    console.log(doc.data());
+    commit("addUserDataInState", doc.data());
+  });
+}
 
-  const userId = data.uid
-   const docRef = doc(db, "users", userId);
-   getDoc(docRef).then((doc) => {
-     console.log(doc.data());
-     commit("addUserDataInState", doc.data());
-   });
+export function signUpNewUser(
+  { commit, dispatch },
+  { email, password, name, role }
+) {
+  console.log(email, password, role, name);
+
+  createUserWithEmailAndPassword(auth, email, password).then((cred) => {
+    console.log(cred);
+    console.log("signup done");
+
+    dispatch("addUser", cred?.user);
+
+    onAuthStateChanged(auth, (user) => {
+      console.log("current loggedin user", user);
+      currerntLoggedInUserId.value = user.uid;
+    });
+
+    setTimeout(() => {
+      console.log(currerntLoggedInUserId.value);
+      setDoc(doc(colUser, currerntLoggedInUserId.value), {
+        name: name,
+        email: email,
+        password: password,
+        role: role,
+      })
+        .then(() => {
+          console.log("doc is set now with uid");
+          console.log(currerntLoggedInUserId.value);
+        })
+        .catch((err) => {
+          console.log(err.message);
+        });
+    }, 1000);
+  });
 }

@@ -69,40 +69,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import firebaseApp from "../firebaseConfig";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
-import {
-  getDocs,
-  collection,
-  getFirestore,
-  addDoc,
-  doc,
-  setDoc,
-} from "firebase/firestore";
-import {
-  createUserWithEmailAndPassword,
-  getAuth,
-  onAuthStateChanged,
-} from "firebase/auth";
-import store from "../store"
+import store from "../store";
 
 const name = ref(null);
 const email = ref(null);
 const password = ref(null);
 const role = ref(null);
-const currerntLoggedInUserId = ref(null);
-
 const router = useRouter();
 
-// init service
-const db = getFirestore();
-const auth = getAuth();
-
-// collection ref
-const colRef = collection(db, "users");
-
-function userSignUp() {
+async function userSignUp() {
   if (
     name.value == null ||
     email.value == null ||
@@ -111,33 +88,13 @@ function userSignUp() {
   ) {
     return alert("Fill all fields");
   } else {
-
-    createUserWithEmailAndPassword(auth, email.value, password.value)
-      .then((cred) => {
-        console.log(cred);
-        console.log("signup done");
-
-        onAuthStateChanged(auth, (user) => {
-          console.log("current loggedin user", user);
-          currerntLoggedInUserId.value = user.uid;
-        });
-
-        setTimeout(() => {
-          console.log(currerntLoggedInUserId.value);
-          setDoc(doc(colRef, currerntLoggedInUserId.value), {
-            name: name.value,
-            email: email.value,
-            password: password.value,
-            role: role.value,
-          }).then(() => {
-            console.log("doc is set now with uid");
-          });
-          router.push({ name: "dashboard" });
-        }, 1000);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
+    await store.dispatch("signUpNewUser", {
+      email: email.value,
+      password: password.value,
+      name: name.value,
+      role: role.value,
+    });
+    router.push({ name: "dashboard" });
   }
 }
 </script>

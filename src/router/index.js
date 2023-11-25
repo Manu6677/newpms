@@ -38,12 +38,12 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   setTimeout(() => {
-    console.log(store.state.userData.role);
-    if (to.path == "/dashboard" && !store.state.userData.role) {
+    console.log(store?.state?.userData?.role);
+    if (to.path == "/dashboard" && !store?.state?.userData?.role) {
       next("/login");
       console.log(to.path);
     } else if (
-      store.state.userData.role &&
+      store?.state?.userData?.role &&
       (to.path == "/login" || to.path == "/signup")
     ) {
       next("/dashboard");
