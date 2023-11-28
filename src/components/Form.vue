@@ -45,11 +45,30 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import store from "../store";
+import { getAuth } from "@firebase/auth";
+import { collection, getFirestore } from "firebase/firestore";
+import firebaseApp from "../firebaseConfig";
+
+// init service
+const db = getFirestore();
+const auth = getAuth(firebaseApp);
+
+// collection ref
+const colRef = collection(db, "polls");
+const colUser = collection(db, "users");
 
 const emit = defineEmits(["is-form-open"]);
 const question = ref("");
+
+const { currentEditCard, addNewPoll } = defineProps([
+  "currentEditCard",
+  "addNewPoll",
+
+]);
+console.log(addNewPoll);
+
 const choices = ref([
   {
     id: 1,
@@ -60,6 +79,16 @@ const choices = ref([
     option: "",
   },
 ]);
+if (currentEditCard.id) {
+  question.value = currentEditCard.ques;
+  choices.value = [];
+  currentEditCard?.choices?.map((data) => {
+    choices.value.push({
+      id: data.id,
+      option: data.option,
+    });
+  });
+}
 
 function addDataToList() {
   choices.value.push({
@@ -68,8 +97,38 @@ function addDataToList() {
   });
 }
 
-function submitHandler() {
-    store.dispatch("addNewPolls", { question, choices });
-    emit('is-form-open')
+async function submitHandler() {
+  if (addNewPoll == true) {
+    console.log(question, choices);
+    if (
+      !question.value ||
+      !choices.value[0].option ||
+      !choices.value[1].option
+    ) {
+      return alert("Fill all fields");
+    }
+    await store.dispatch("addNewPolls", { question, choices });
+    emit("is-form-open");
+  } else {
+    let optionEmpty = false;
+    if (!question.value) {
+      return alert("Please fill question");
+    }
+    choices.value.map((it) => {
+      if (it.option == "") {
+        optionEmpty = true;
+        return alert("Add all choices")
+      }
+    });
+
+    if (optionEmpty == false) {
+      await store.dispatch("updatePolls", {
+        option: choices.value,
+        ques: question.value,
+        id: currentEditCard?.id,
+      });
+      emit("is-form-open");
+    }
+  }
 }
 </script>

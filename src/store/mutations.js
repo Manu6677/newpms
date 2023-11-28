@@ -1,5 +1,5 @@
-export function addUserDataInState(state, data) {
-  state.userData = data;
+export function addUserDataInState(state, {data, uid}) {
+  state.userData = {data, uid};
   console.log(state.userData);
 }
 

@@ -16,6 +16,7 @@ import {
   setDoc,
   doc,
   updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import firebaseApp from "../firebaseConfig";
 import { ref } from "vue";
@@ -67,8 +68,8 @@ export function logoutUser({ commit }) {
   }
 }
 
-export function loginInUser({ commit, dispatch }, { email, password }) {
-  signInWithEmailAndPassword(auth, email, password)
+export async function loginInUser({ commit, dispatch }, { email, password }) {
+  await signInWithEmailAndPassword(auth, email, password)
     .then((cred) => {
       dispatch("addUser", cred.user);
       console.log("login success");
@@ -83,7 +84,7 @@ export function addUser({ commit }, data) {
   const docRef = doc(db, "users", userId);
   getDoc(docRef).then((doc) => {
     console.log(doc.data());
-    commit("addUserDataInState", doc.data());
+    commit("addUserDataInState", { data: doc.data(), uid: userId });
   });
 }
 
@@ -95,7 +96,7 @@ export function signUpNewUser(
 
   createUserWithEmailAndPassword(auth, email, password).then((cred) => {
     console.log(cred);
-    console.log("signup done");
+    // console.log("signup done");
 
     dispatch("addUser", cred?.user);
 
@@ -113,12 +114,38 @@ export function signUpNewUser(
         role: role,
       })
         .then(() => {
-          console.log("doc is set now with uid");
+          // console.log("doc is set now with uid");
           console.log(currerntLoggedInUserId.value);
         })
         .catch((err) => {
           console.log(err.message);
         });
     }, 1000);
+  });
+}
+
+export async function updatePolls({ commit }, { option, ques, id }) {
+  console.log(option);
+  console.log(ques);
+  console.log(id);
+  const docRef = doc(db, "polls", id);
+  await updateDoc(docRef, {
+    ques,
+    choices: option,
+  }).then(() => {
+    console.log("updated Doc");
+  });
+}
+
+export async function addedPoll(
+  { commit, state },
+  { id, question, pollChoice }
+) {
+  console.log(id, question, pollChoice);
+
+  let uid = state?.userData?.uid; 
+  let ref = doc(db, "polls", id);
+  await updateDoc(ref, {
+    pollData: arrayUnion({ userId: uid, ques: question, pollChoice }),
   });
 }
